@@ -1,0 +1,31 @@
+name: run linter
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # To tests more versions or os, see https://docs.github.com/en/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+        os: [ubuntu-latest]
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      - name: install package manager and dependencies
+        run: make install
+      - name: run lint
+        run: |
+          poetry run autopep8 my_example_imagine_project -r -d --exit-code
+          poetry run isort my_example_imagine_project --diff -c
